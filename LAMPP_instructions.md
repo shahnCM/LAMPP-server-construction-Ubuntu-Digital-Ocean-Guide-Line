@@ -672,10 +672,8 @@
 
         ![info.php](https://assets.digitalocean.com/articles/how-to-install-lamp-ubuntu-18/small_php_info_1804.png)
 
-
-
-- ## __C.__  __Enable https using certbot__ 
-
+- ## __C.__  __Enable https using certbot__
+ 
     __Prerequisites__
 
     To follow this tutorial, you will need:
