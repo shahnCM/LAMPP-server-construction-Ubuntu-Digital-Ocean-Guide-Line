@@ -163,7 +163,7 @@
 
         You will be prompted for your regular user password when using sudo for the first time each session (and periodically afterwards).
 
-        ### To find your IP: Type this into CLI
+         _To find your IP: Type this into CLI_
 
         `dig +short myip.opendns.com @resolver1.opendns.com`
 
