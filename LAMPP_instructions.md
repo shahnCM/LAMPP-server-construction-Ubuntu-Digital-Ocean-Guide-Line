@@ -169,7 +169,7 @@
         dig +short myip.opendns.com @resolver1.opendns.com
         ```
 
-- ### __B.__ __Installing LAMPP__
+- ### __B. Installing LAMPP__
 
     __Introduction__
 
