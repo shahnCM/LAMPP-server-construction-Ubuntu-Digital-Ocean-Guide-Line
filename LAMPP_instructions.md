@@ -163,9 +163,9 @@
 
         You will be prompted for your regular user password when using sudo for the first time each session (and periodically afterwards).
 
-         _To find your IP: Type this into CLI_
+        To find your IP: Type this into CLI
 
-        `dig +short myip.opendns.com @resolver1.opendns.com`
+        - `dig +short myip.opendns.com @resolver1.opendns.com`
 
 - ### __B. Installing LAMPP (Linux, MySql, Apache & Php)__
 
