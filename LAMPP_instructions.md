@@ -674,3 +674,199 @@
 
 
 
+- ## __C.__  __Enable https using certbot__ 
+
+    __Prerequisites__
+
+    To follow this tutorial, you will need:
+
+    One Ubuntu 18.04 server set up by following this initial server setup for Ubuntu 18.04 tutorial, including a sudo non-root user and a firewall.
+    A fully registered domain name. This tutorial will use your_domain as an example throughout. You can purchase a domain name on Namecheap, get one for free on Freenom, or use the domain registrar of your choice.
+    Both of the following DNS records set up for your server. You can follow this introduction to DigitalOcean DNS for details on how to add them.
+
+    - An A record with your_domain pointing to your server’s public IP address.
+    - An A record with www.your_domain pointing to your server’s public IP address.
+
+    Apache installed by following How To Install Apache on Ubuntu 18.04. Be sure that you have a virtual host file for your domain. This tutorial will use `/etc/apache2/sites-available/testdomain.conf` as an example.
+
+1. __Installing Certbot__
+
+    The first step to using Let’s Encrypt to obtain an SSL certificate is to install the Certbot software on your server.
+
+    Certbot is in very active development, so the Certbot packages provided by Ubuntu tend to be outdated. However, the Certbot developers maintain a Ubuntu software repository with up-to-date versions, so we’ll use that repository instead.
+
+    First, add the repository:
+
+    ```
+    sudo add-apt-repository ppa:certbot/certbot
+    ```
+
+    You’ll need to press ENTER to accept.
+
+    Install Certbot’s Apache package with apt:
+
+    ```
+    sudo apt install python-certbot-apache
+    ```
+
+    Certbot is now ready to use, but in order for it to configure SSL for Apache, we need to verify some of Apache’s configuration.
+
+2. __Set Up the SSL Certificate__
+
+    Certbot needs to be able to find the correct virtual host in your Apache configuration for it to automatically configure SSL. Specifically, it does this by looking for a ServerName directive that matches the domain you request a certificate for.
+
+    If you followed the virtual host set up step in the Apache installation tutorial, you should have a VirtualHost block for your domain at `/etc/apache2/sites-available/testdomain.com.conf` with the ServerName directive already set appropriately.
+
+    To check, open the virtual host file for your domain using nano or your favorite text editor:
+
+    ```
+    sudo nano /etc/apache2/sites-available/your_domain.conf
+    ```
+
+    Find the existing ServerName line. It should look like this:
+
+    ```
+    ServerName your_domain;
+    ```
+
+    If it does, exit your editor and move on to the next step.
+
+    If it doesn’t, update it to match. Then save the file, quit your editor, and verify the syntax of your configuration edits:
+
+    ```
+    sudo apache2ctl configtest
+    ```
+
+    If you get an error, reopen the virtual host file and check for any typos or missing characters. Once your configuration file’s syntax is correct, reload Apache to load the new configuration:
+
+    ```
+    sudo systemctl reload apache2
+    ```
+
+3. __Allowing HTTPS Through the Firewall__
+
+    If you have the `ufw` firewall enabled, as recommended by the prerequisite guides, you’ll need to adjust the settings to allow for HTTPS traffic. Luckily, Apache registers a few profiles with ufw upon installation.
+
+    You can see the current setting by typing:
+
+    ```
+    sudo ufw status
+    ```
+
+    It will probably look like this, meaning that only HTTP traffic is allowed to the web server:
+
+    ```
+    Output
+    Status: active
+
+    To                         Action      From
+    --                         ------      ----
+    OpenSSH                    ALLOW       Anywhere                  
+    Apache                     ALLOW       Anywhere                  
+    OpenSSH (v6)               ALLOW       Anywhere (v6)             
+    Apache (v6)                ALLOW       Anywhere (v6)
+    ```
+
+    To additionally let in HTTPS traffic, allow the Apache Full profile and delete the redundant Apache profile allowance:
+
+    ```
+    sudo ufw allow 'Apache Full'
+    sudo ufw delete allow 'Apache'
+    ```
+
+    ```
+    Output
+    Status: active
+
+    To                         Action      From
+    --                         ------      ----
+    OpenSSH                    ALLOW       Anywhere                  
+    Apache Full                ALLOW       Anywhere                  
+    OpenSSH (v6)               ALLOW       Anywhere (v6)             
+    Apache Full (v6)           ALLOW       Anywhere (v6)  
+    ```
+
+    Next, let’s run Certbot and fetch our certificates.
+
+4. __Obtaining an SSL Certificate__
+
+    Certbot provides a variety of ways to obtain SSL certificates through plugins. The Apache plugin will take care of reconfiguring Apache and reloading the config whenever necessary. To use this plugin, type the following:
+
+    ```
+    sudo certbot --apache -d your_domain -d www.your_domain
+    ```
+
+    This runs certbot with the --apache plugin, using -d to specify the names you’d like the certificate to be valid for.
+
+    If this is your first time running certbot, you will be prompted to enter an email address and agree to the terms of service. After doing so, certbot will communicate with the Let’s Encrypt server, then run a challenge to verify that you control the domain you’re requesting a certificate for.
+
+    If that’s successful, certbot will ask how you’d like to configure your HTTPS settings:
+
+    ```
+    Output
+    Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
+    -------------------------------------------------------------------------------
+    1: No redirect - Make no further changes to the webserver configuration.
+    2: Redirect - Make all requests redirect to secure HTTPS access. Choose this for
+    new sites, or if you're confident your site works on HTTPS. You can undo this
+    change by editing your web server's configuration.
+    -------------------------------------------------------------------------------
+    Select the appropriate number [1-2] then [enter] (press 'c' to cancel):
+    ```
+
+    Select your choice then hit `ENTER`. The configuration will be updated, and Apache will reload to pick up the new settings. `certbot` will wrap up with a message telling you the process was successful and where your certificates are stored:
+
+    ```
+    Output
+    IMPORTANT NOTES:
+    - Congratulations! Your certificate and chain have been saved at:
+    /etc/letsencrypt/live/your_domain/fullchain.pem
+    Your key file has been saved at:
+    /etc/letsencrypt/live/your_domain/privkey.pem
+    Your cert will expire on 2018-07-23. To obtain a new or tweaked
+    version of this certificate in the future, simply run certbot again
+    with the "certonly" option. To non-interactively renew *all* of
+    your certificates, run "certbot renew"
+    - Your account credentials have been saved in your Certbot
+    configuration directory at /etc/letsencrypt. You should make a
+    secure backup of this folder now. This configuration directory will
+    also contain certificates and private keys obtained by Certbot so
+    making regular backups of this folder is ideal.
+    - If you like Certbot, please consider supporting our work by:
+
+    Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+    Donating to EFF:                    https://eff.org/donate-le
+    ```
+
+    Your certificates are downloaded, installed, and loaded. Try reloading your website using `https://` and notice your browser’s security indicator. It should indicate that the site is properly secured, usually with a green lock icon. If you test your server using the SSL Labs Server Test, it will get an __`A`__ grade.
+
+5. __Verifying Certbot Auto-Renewal__
+
+    The `certbot` package we installed takes care of renewals by including a renew script to `/etc/cron.d`, which is managed by a systemctl service called certbot.timer. This script runs twice a day and will automatically renew any certificate that’s within thirty days of expiration.
+
+    To check the status of this service and make sure it’s active and running, you can use:
+
+    ```
+    sudo systemctl status certbot.timer
+    ```
+
+    You’ll get output similar to this:
+
+    ```
+    Output
+    ● certbot.timer - Run certbot twice daily
+        Loaded: loaded (/lib/systemd/system/certbot.timer; enabled; vendor preset: enabled)
+        Active: active (waiting) since Tue 2020-04-28 17:57:48 UTC; 17h ago
+        Trigger: Wed 2020-04-29 23:50:31 UTC; 12h left
+    Triggers: ● certbot.service
+
+    Apr 28 17:57:48 fine-turtle systemd[1]: Started Run certbot twice daily.
+    ```
+
+    To test the renewal process, you can do a dry run with `certbot`:
+    
+    ```
+    sudo certbot renew --dry-run
+    ```
+
+    If you see no errors, you’re all set. When necessary, Certbot will renew your certificates and reload Apache to pick up the changes. If the automated renewal process ever fails, Let’s Encrypt will send a message to the email you specified, warning you when your certificate is about to expire.
