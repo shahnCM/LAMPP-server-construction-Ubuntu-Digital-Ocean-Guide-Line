@@ -169,6 +169,8 @@
 
 - ### __B. Installing LAMPP (Linux, MySql, Apache & Php)__
 
+---
+
     __Introduction__
 
     A “LAMP” stack is a group of open-source software that is typically installed together to enable a server to host dynamic websites and web apps. This term is actually an acronym which represents the Linux operating system, with the Apache web server. The site data is stored in a MySQL database, and dynamic content is processed by PHP.
