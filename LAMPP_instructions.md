@@ -14,7 +14,7 @@
 
 ---
 
-- ## __A.__ __Creating a new User & give SUDO Power & Installing OpenSSH__
+- ## __A. Creating a new User & give SUDO Power & Installing OpenSSH__
 
     1. __Log in as root in terminal once you have logged in using the GUI interface__
 
@@ -167,7 +167,7 @@
 
         `dig +short myip.opendns.com @resolver1.opendns.com`
 
-- ### __B. Installing LAMPP__
+- ### __B. Installing LAMPP (Linux, MySql, Apache & Php)__
 
     __Introduction__
 
